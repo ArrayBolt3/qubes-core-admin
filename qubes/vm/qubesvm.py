@@ -65,6 +65,20 @@ MEM_OVERHEAD_PER_VCPU = 3 * 1024 * 1024 / 2
 _vm_uuid_re = re.compile(rb"\A/vm/[0-9a-f]{8}(?:-[0-9a-f]{4}){4}[0-9a-f]{8}\Z")
 
 
+def _setter_bootmode(self, prop, value):
+    """
+    Helper for setting the bootmode and running sanity checks on it.
+    """
+    if not value:
+        return ""
+    value = str(value)
+    if value == "default":
+        raise qubes.exc.QubesPropertyValueError(
+            self, prop, value, "Bootmode name cannot be 'default'"
+        )
+    return value
+
+
 def _setter_kernel(self, prop, value):
     """
     Helper for setting the domain kernel and running sanity checks on it.
@@ -214,6 +228,24 @@ def _setter_kbd_layout(self, prop, value):
         )
 
     return value
+
+
+def _default_bootmode(self):
+    """
+    Return the template's default bootmode for AppVMs if possible, otherwise
+    return the special value "default".
+    """
+    subject = self
+    while hasattr(subject, "template"):
+        if hasattr(subject.template, "appvm_default_bootmode"):
+            bootmode_value = subject.template.appvm_default_bootmode
+            kernelopts = subject.features.check_with_template(
+                f"boot-mode.kernelopts.{bootmode_value}", None
+            )
+            if kernelopts is not None:
+                return bootmode_value
+        subject = subject.template
+    return "default"
 
 
 def _default_virt_mode(self):
@@ -660,6 +692,15 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
     #
     # properties loaded from XML
     #
+    bootmode = qubes.property(
+        "bootmode",
+        type=str,
+        load_stage=4,
+        setter=_setter_bootmode,
+        default=_default_bootmode,
+        doc="Active boot mode for this domain",
+    )
+
     guivm = qubes.VMProperty(
         "guivm",
         load_stage=4,
@@ -953,6 +994,26 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
                         break
 
         return result + list(self.volumes.values())
+
+    @property
+    def bootmode_kernelopts(self):
+        if self.property_is_default("bootmode"):
+            return ""
+        if self.bootmode == "default":
+            # It shouldn't be possible for the property to be explicitly set
+            # to "default", but better safe than sorry.
+            return ""
+        kernelopts = self.features.check_with_template(
+            f"boot-mode.kernelopts.{self.bootmode}", None
+        )
+        if kernelopts is None:
+            default_bootmode = _default_bootmode(self)
+            kernelopts = self.features.check_with_template(
+                f"boot-mode.kernelopts.{default_bootmode}", None
+            )
+            if kernelopts is None:
+                return ""
+        return f" {kernelopts}"
 
     @property
     def libvirt_domain(self):
