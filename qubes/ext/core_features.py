@@ -108,10 +108,9 @@ class CoreFeatures(qubes.ext.Extension):
         # handle boot mode advertisement
         old_bootmode_info = {}
         for feature_key, feature_val in vm.features.items():
-            if (
-                feature_key.startswith("boot-mode.kernelopts.")
-                or feature_key.startswith("boot-mode.name.")
-            ):
+            if feature_key.startswith(
+                "boot-mode.kernelopts."
+            ) or feature_key.startswith("boot-mode.name"):
                 old_bootmode_info[feature_key] = feature_val
         new_bootmode_info = {}
         untrusted_sanitized_features = {}
@@ -143,9 +142,9 @@ class CoreFeatures(qubes.ext.Extension):
                 bootmode_name = untrusted_feature_key.split(".")[2]
                 if bootmode_name == "":
                     continue
-                if not (
+                if (
                     f"boot-mode.kernelopts.{bootmode_name}"
-                    in new_bootmode_info
+                    not in new_bootmode_info
                 ):
                     continue
                 bootmode_feature = untrusted_feature_key

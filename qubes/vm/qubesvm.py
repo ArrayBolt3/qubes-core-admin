@@ -684,7 +684,7 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
         type=str,
         load_stage=4,
         default=_default_bootmode,
-        doc="Active boot mode for this domain"
+        doc="Active boot mode for this domain",
     )
 
     guivm = qubes.VMProperty(
@@ -995,9 +995,7 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
             )
             if kernelopts is None:
                 return ""
-            return f" {kernelopts}"
-        else:
-            return f" {kernelopts}"
+        return f" {kernelopts}"
 
     @property
     def libvirt_domain(self):

@@ -48,7 +48,7 @@ class TemplateVM(QubesVM):
         type=str,
         load_stage=4,
         default="",
-        doc="Default active bootmode for AppVMs based on this template"
+        doc="Default active bootmode for AppVMs based on this template",
     )
 
     netvm = qubes.VMProperty(
