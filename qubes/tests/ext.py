@@ -490,6 +490,324 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             ],
         )
 
+    def test_040_bootmode_noname(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_041_bootmode_withname(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq": "VMReq",
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq", "VMReq"), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_042_bootmode_extraname(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq1": "VMReq1",
+                    "boot-mode.kernelopts.vmreq1": "vmreq1-1 vmreq1-2",
+                    "boot-mode.name.bad": "Bad Entry",
+                    "boot-mode.name.vmreq2": "VMReq2",
+                    "boot-mode.kernelopts.vmreq2": "vmreq2-1 vmreq2-2",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq2", "vmreq2-1 vmreq2-2"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq2", "VMReq2"), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_043_bootmode_extrakernelopts(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq1": "VMReq1",
+                    "boot-mode.kernelopts.vmreq1": "vmreq1-1 vmreq1-2",
+                    "boot-mode.kernelopts.extra": "extra-opts",
+                    "boot-mode.name.vmreq2": "VMReq2",
+                    "boot-mode.kernelopts.vmreq2": "vmreq2-1 vmreq2-2",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.extra", "extra-opts"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq2", "vmreq2-1 vmreq2-2"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq2", "VMReq2"), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_044_bootmode_discard_old(self):
+        del self.vm.template
+        self.features["boot-mode.name.old"] = "Old"
+        self.features["boot-mode.kernelopts.old"] = "old1 old2"
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq1": "VMReq1",
+                    "boot-mode.kernelopts.vmreq1": "vmreq1-1 vmreq1-2",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.__delitem__", ("boot-mode.name.old"), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.old"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_045_bootmode_update_old(self):
+        del self.vm.template
+        self.features["boot-mode.name.old1"] = "Old1"
+        self.features["boot-mode.kernelopts.old1"] = "old1-1 old1-2"
+        self.features["boot-mode.name.old2"] = "Old2"
+        self.features["boot-mode.kernelopts.old2"] = "old2-1 old2-2"
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq1": "VMReq1",
+                    "boot-mode.kernelopts.vmreq1": "vmreq1-1 vmreq1-2",
+                    "boot-mode.kernelopts.old1": "old-newer1-1 old-newer1-2",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.__delitem__", ("boot-mode.name.old1"), {}),
+                ("features.__delitem__", ("boot-mode.name.old2"), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.old2"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.old1", "old-newer1-1 old-newer1-2"), {}),
+                ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_046_bootmode_flood1(self):
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.kernelopts.garbage1": "garbage1",
+                    "boot-mode.kernelopts.garbage2": "garbage2",
+                    "boot-mode.kernelopts.garbage3": "garbage3",
+                    "boot-mode.kernelopts.garbage4": "garbage4",
+                    "boot-mode.kernelopts.garbage5": "garbage5",
+                    "boot-mode.kernelopts.garbage6": "garbage6",
+                    "boot-mode.kernelopts.garbage7": "garbage7",
+                    "boot-mode.kernelopts.garbage8": "garbage8",
+                    "boot-mode.kernelopts.garbage9": "garbage9",
+                    "boot-mode.kernelopts.garbage10": "garbage10",
+                    "boot-mode.kernelopts.garbage11": "garbage11",
+                    "boot-mode.kernelopts.garbage12": "garbage12",
+                    "boot-mode.kernelopts.garbage13": "garbage13",
+                    "boot-mode.kernelopts.garbage14": "garbage14",
+                    "boot-mode.kernelopts.garbage15": "garbage15",
+                    "boot-mode.kernelopts.garbage16": "garbage16",
+                    "boot-mode.kernelopts.garbage17": "garbage17",
+                    "boot-mode.kernelopts.garbage18": "garbage18",
+                    "boot-mode.kernelopts.garbage19": "garbage19",
+                    "boot-mode.kernelopts.garbage20": "garbage20",
+                    "boot-mode.kernelopts.garbage21": "garbage21",
+                    "boot-mode.kernelopts.garbage22": "garbage22",
+                    "boot-mode.kernelopts.garbage23": "garbage23",
+                    "boot-mode.kernelopts.garbage24": "garbage24",
+                    "boot-mode.kernelopts.garbage25": "garbage25",
+                    "boot-mode.kernelopts.garbage26": "garbage26",
+                    "boot-mode.kernelopts.garbage27": "garbage27",
+                    "boot-mode.kernelopts.garbage28": "garbage28",
+                    "boot-mode.kernelopts.garbage29": "garbage29",
+                    "boot-mode.kernelopts.garbage30": "garbage30",
+                    "boot-mode.kernelopts.garbage31": "garbage31",
+                    "boot-mode.kernelopts.garbage32": "garbage32",
+                    "boot-mode.kernelopts.garbage33": "garbage33",
+                    "boot-mode.kernelopts.garbage34": "garbage34",
+                    "boot-mode.kernelopts.garbage35": "garbage35",
+                    "boot-mode.kernelopts.garbage36": "garbage36",
+                    "boot-mode.kernelopts.garbage37": "garbage37",
+                    "boot-mode.kernelopts.garbage38": "garbage38",
+                    "boot-mode.kernelopts.garbage39": "garbage39",
+                    "boot-mode.kernelopts.garbage40": "garbage40",
+                    "boot-mode.kernelopts.garbage41": "garbage41",
+                    "boot-mode.kernelopts.garbage42": "garbage42",
+                    "boot-mode.kernelopts.garbage43": "garbage43",
+                    "boot-mode.kernelopts.garbage44": "garbage44",
+                    "boot-mode.kernelopts.garbage45": "garbage45",
+                    "boot-mode.kernelopts.garbage46": "garbage46",
+                    "boot-mode.kernelopts.garbage47": "garbage47",
+                    "boot-mode.kernelopts.garbage48": "garbage48",
+                    "boot-mode.kernelopts.garbage49": "garbage49",
+                    "boot-mode.kernelopts.garbage50": "garbage50",
+                    "boot-mode.kernelopts.garbage51": "garbage51",
+                    "boot-mode.kernelopts.garbage52": "garbage52",
+                    "boot-mode.kernelopts.garbage53": "garbage53",
+                    "boot-mode.kernelopts.garbage54": "garbage54",
+                    "boot-mode.kernelopts.garbage55": "garbage55",
+                    "boot-mode.kernelopts.garbage56": "garbage56",
+                    "boot-mode.kernelopts.garbage57": "garbage57",
+                    "boot-mode.kernelopts.garbage58": "garbage58",
+                    "boot-mode.kernelopts.garbage59": "garbage59",
+                    "boot-mode.kernelopts.garbage60": "garbage60",
+                    "boot-mode.kernelopts.garbage61": "garbage61",
+                    "boot-mode.kernelopts.garbage62": "garbage62",
+                    "boot-mode.kernelopts.garbage63": "garbage63",
+                    "boot-mode.kernelopts.garbage64": "garbage64",
+                    "boot-mode.kernelopts.garbage65": "garbage65",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
+    def test_047_bootmode_flood2(self):
+        self.features["boot-mode.kernelopts.garbage1"] = "garbage1"
+        self.features["boot-mode.kernelopts.garbage2"] = "garbage2"
+        self.features["boot-mode.kernelopts.garbage3"] = "garbage3"
+        self.features["boot-mode.kernelopts.garbage4"] = "garbage4"
+        self.features["boot-mode.kernelopts.garbage5"] = "garbage5"
+        self.features["boot-mode.kernelopts.garbage6"] = "garbage6"
+        self.features["boot-mode.kernelopts.garbage7"] = "garbage7"
+        self.features["boot-mode.kernelopts.garbage8"] = "garbage8"
+        self.features["boot-mode.kernelopts.garbage9"] = "garbage9"
+        self.features["boot-mode.kernelopts.garbage10"] = "garbage10"
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.kernelopts.garbage11": "garbage11",
+                    "boot-mode.kernelopts.garbage12": "garbage12",
+                    "boot-mode.kernelopts.garbage13": "garbage13",
+                    "boot-mode.kernelopts.garbage14": "garbage14",
+                    "boot-mode.kernelopts.garbage15": "garbage15",
+                    "boot-mode.kernelopts.garbage16": "garbage16",
+                    "boot-mode.kernelopts.garbage17": "garbage17",
+                    "boot-mode.kernelopts.garbage18": "garbage18",
+                    "boot-mode.kernelopts.garbage19": "garbage19",
+                    "boot-mode.kernelopts.garbage20": "garbage20",
+                    "boot-mode.kernelopts.garbage21": "garbage21",
+                    "boot-mode.kernelopts.garbage22": "garbage22",
+                    "boot-mode.kernelopts.garbage23": "garbage23",
+                    "boot-mode.kernelopts.garbage24": "garbage24",
+                    "boot-mode.kernelopts.garbage25": "garbage25",
+                    "boot-mode.kernelopts.garbage26": "garbage26",
+                    "boot-mode.kernelopts.garbage27": "garbage27",
+                    "boot-mode.kernelopts.garbage28": "garbage28",
+                    "boot-mode.kernelopts.garbage29": "garbage29",
+                    "boot-mode.kernelopts.garbage30": "garbage30",
+                    "boot-mode.kernelopts.garbage31": "garbage31",
+                    "boot-mode.kernelopts.garbage32": "garbage32",
+                    "boot-mode.kernelopts.garbage33": "garbage33",
+                    "boot-mode.kernelopts.garbage34": "garbage34",
+                    "boot-mode.kernelopts.garbage35": "garbage35",
+                    "boot-mode.kernelopts.garbage36": "garbage36",
+                    "boot-mode.kernelopts.garbage37": "garbage37",
+                    "boot-mode.kernelopts.garbage38": "garbage38",
+                    "boot-mode.kernelopts.garbage39": "garbage39",
+                    "boot-mode.kernelopts.garbage40": "garbage40",
+                    "boot-mode.kernelopts.garbage41": "garbage41",
+                    "boot-mode.kernelopts.garbage42": "garbage42",
+                    "boot-mode.kernelopts.garbage43": "garbage43",
+                    "boot-mode.kernelopts.garbage44": "garbage44",
+                    "boot-mode.kernelopts.garbage45": "garbage45",
+                    "boot-mode.kernelopts.garbage46": "garbage46",
+                    "boot-mode.kernelopts.garbage47": "garbage47",
+                    "boot-mode.kernelopts.garbage48": "garbage48",
+                    "boot-mode.kernelopts.garbage49": "garbage49",
+                    "boot-mode.kernelopts.garbage50": "garbage50",
+                    "boot-mode.kernelopts.garbage51": "garbage51",
+                    "boot-mode.kernelopts.garbage52": "garbage52",
+                    "boot-mode.kernelopts.garbage53": "garbage53",
+                    "boot-mode.kernelopts.garbage54": "garbage54",
+                    "boot-mode.kernelopts.garbage55": "garbage55",
+                    "boot-mode.kernelopts.garbage56": "garbage56",
+                    "boot-mode.kernelopts.garbage57": "garbage57",
+                    "boot-mode.kernelopts.garbage58": "garbage58",
+                    "boot-mode.kernelopts.garbage59": "garbage59",
+                    "boot-mode.kernelopts.garbage60": "garbage60",
+                    "boot-mode.kernelopts.garbage61": "garbage61",
+                    "boot-mode.kernelopts.garbage62": "garbage62",
+                    "boot-mode.kernelopts.garbage63": "garbage63",
+                    "boot-mode.kernelopts.garbage64": "garbage64",
+                    "boot-mode.kernelopts.garbage65": "garbage65",
+                }
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                ("features.get", ("qrexec", False), {}),
+            ]
+        )
+
     def test_100_servicevm_feature(self):
         self.vm.provides_network = True
         self.ext.set_servicevm_feature(self.vm)
