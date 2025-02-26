@@ -71,6 +71,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.__contains__", ("qrexec",), {}),
                 ("features.__setitem__", ("qrexec", True), {}),
@@ -100,6 +101,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.__contains__", ("qrexec",), {}),
                 ("features.__setitem__", ("qrexec", False), {}),
@@ -125,6 +127,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
@@ -146,6 +149,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.__contains__", ("qrexec",), {}),
                 ("features.__setitem__", ("qrexec", True), {}),
@@ -173,6 +177,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.__contains__", ("gui",), {}),
                 ("features.__setitem__", ("gui", True), {}),
@@ -197,6 +202,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.__contains__", ("qrexec",), {}),
                 ("features.__setitem__", ("qrexec", True), {}),
@@ -249,6 +255,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
                 ("features.__contains__", ("qrexec",), {}),
                 ("features.__contains__", ("gui",), {}),
@@ -269,6 +276,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             self.vm.mock_calls,
             [
                 ("features.__setitem__", ("qubes-agent-version", "4.1"), {}),
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -286,6 +294,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -300,6 +309,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -314,6 +324,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -328,6 +339,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -353,6 +365,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ("features.__setitem__", ("os-distribution", "debian"), {}),
                 ("features.__setitem__", ("os-version", "12"), {}),
                 ("features.__setitem__", ("os-eol", "2026-06-10"), {}),
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -384,6 +397,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ),
                 ("features.__setitem__", ("os-version", "22.04"), {}),
                 ("features.__setitem__", ("os-eol", "2027-06-01"), {}),
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -415,6 +429,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ),
                 ("log.warning", unittest.mock.ANY, {}),
                 ("log.warning", unittest.mock.ANY, {}),
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -446,6 +461,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ),
                 ("log.warning", unittest.mock.ANY, {}),
                 ("log.warning", unittest.mock.ANY, {}),
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
@@ -469,6 +485,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         self.assertListEqual(
             self.vm.mock_calls,
             [
+                ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
             ],
         )
