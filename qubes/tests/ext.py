@@ -651,6 +651,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         )
 
     def test_046_bootmode_flood1(self):
+        del self.vm.template
         self.loop.run_until_complete(
             self.ext.qubes_features_request(
                 self.vm,
@@ -734,6 +735,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         )
 
     def test_047_bootmode_flood2(self):
+        del self.vm.template
         self.features["boot-mode.kernelopts.garbage1"] = "garbage1"
         self.features["boot-mode.kernelopts.garbage2"] = "garbage2"
         self.features["boot-mode.kernelopts.garbage3"] = "garbage3"
