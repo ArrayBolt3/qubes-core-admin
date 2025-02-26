@@ -43,6 +43,14 @@ class TemplateVM(QubesVM):
             if hasattr(vm, "template") and vm.template is self:
                 yield vm
 
+    appvm_default_bootmode = qubes.property(
+        "appvm_default_bootmode",
+        type=str,
+        load_stage=4,
+        default="",
+        doc="Default active bootmode for AppVMs based on this template"
+    )
+
     netvm = qubes.VMProperty(
         "netvm",
         load_stage=4,

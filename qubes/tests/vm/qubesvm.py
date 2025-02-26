@@ -281,6 +281,15 @@ class TC_10_default(qubes.tests.QubesTestCase):
         self.vm.memory = 100
         self.assertEqual(qubes.vm.qubesvm._default_maxmem(self.vm), 1000)
 
+    def test_030_default_bootmode(self):
+        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "")
+        self.vm.template = TestVM()
+        self.vm.template.appvm_default_bootmode = "testmode"
+        self.vm.template.features["boot-mode.kernelopts.testmode"] = "abc def"
+        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "testmode")
+        del self.vm.template.features["boot-mode.kernelopts.testmode"]
+        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "")
+
 
 class QubesVMTestsMixin(object):
     property_no_default = object()
@@ -634,6 +643,87 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         )
         self.assertPropertyValue(vm, "kernelopts", "", "", "")
 
+    @unittest.mock.patch.dict(
+        qubes.config.system_path, {"qubes_kernels_base_dir": "/tmp"}
+    )
+    def test_263_kernelopts_common(self):
+        d = tempfile.mkdtemp(prefix="/tmp/")
+        self.addCleanup(shutil.rmtree, d)
+        open(d + "/vmlinuz", "w").close()
+        open(d + "/initramfs", "w").close()
+        with open(d + "/default-kernelopts-common.txt", "w") as f:
+            f.write("some  default root=/dev/sda nomodeset other")
+        vm = self.get_vm()
+        vm.kernel = os.path.basename(d)
+        uuid_str = str(vm.uuid).replace("-", "")
+        self.assertPropertyDefaultValue(
+            vm,
+            "kernelopts_common",
+            f"systemd.machine_id={uuid_str} "
+            "some  default root=/dev/sda nomodeset other",
+        )
+        vm.features["no-nomodeset"] = "1"
+        vm.features["os"] = "non-Linux"
+        self.assertPropertyDefaultValue(
+            vm, "kernelopts_common", "some  default root=/dev/sda other"
+        )
+
+    @unittest.mock.patch.dict(
+        qubes.config.system_path, {"qubes_kernels_base_dir": "/tmp"}
+    )
+    def test_264_kernelopts_common_gpu(self):
+        d = tempfile.mkdtemp(prefix="/tmp/")
+        self.addCleanup(shutil.rmtree, d)
+        open(d + "/vmlinuz", "w").close()
+        open(d + "/initramfs", "w").close()
+        with open(d + "/default-kernelopts-common.txt", "w") as f:
+            f.write("some  default root=/dev/sda nomodeset other")
+            # required for PCI devices listing
+            self.app.vmm.offline_mode = False
+            hostdev_details = unittest.mock.Mock(
+                **{
+                    "XMLDesc.return_value": """
+        <device>
+          <name>pci_0000_00_02_0</name>
+          <path>/sys/devices/pci0000:00/0000:00:02.0</path>
+          <parent>computer</parent>
+          <capability type='pci'>
+            <class>0x030000</class>
+            <domain>0</domain>
+            <bus>0</bus>
+            <slot>2</slot>
+            <function>0</function>
+            <product id='0x0000'>Unknown</product>
+            <vendor id='0x8086'>Intel Corporation</vendor>
+          </capability>
+        </device>""",
+                }
+            )
+            self.app.vmm.libvirt_mock = unittest.mock.Mock(
+                **{"nodeDeviceLookupByName.return_value": hostdev_details}
+            )
+        vm = self.get_vm()
+        assignment = qubes.device_protocol.DeviceAssignment(
+            qubes.device_protocol.VirtualDevice(
+                qubes.device_protocol.Port(
+                    backend_domain=vm,  # this is violation of API,
+                    # but for PCI the argument is unused
+                    port_id="00_02.0",
+                    devclass="pci",
+                )
+            ),
+            mode="required",
+        )
+        vm.devices["pci"]._set.add(assignment)
+        vm.kernel = os.path.basename(d)
+        uuid_str = str(vm.uuid).replace("-", "")
+        self.assertPropertyDefaultValue(
+            vm,
+            "kernelopts_common",
+            f"systemd.machine_id={uuid_str} "
+            "some  default root=/dev/sda other",
+        )
+
     def test_270_qrexec_timeout(self):
         vm = self.get_vm()
         self.assertPropertyDefaultValue(vm, "qrexec_timeout", 60)
@@ -964,6 +1054,73 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         vm = self.get_vm(uuid=my_uuid)
         vm.netvm = None
         vm.virt_mode = "hvm"
+        libvirt_xml = vm.create_config_file()
+        self.assertXMLEqual(
+            lxml.etree.XML(libvirt_xml), lxml.etree.XML(expected)
+        )
+
+    def test_600_libvirt_xml_hvm_with_guivm(self):
+        my_uuid = "7db78950-c467-4863-94d1-af59806384ea"
+        expected = """<domain type="xen">
+        <name>test-inst-test</name>
+        <uuid>7db78950-c467-4863-94d1-af59806384ea</uuid>
+        <memory unit="MiB">400</memory>
+        <currentMemory unit="MiB">400</currentMemory>
+        <vcpu placement="static">2</vcpu>
+        <cpu mode='host-passthrough'>
+            <!-- disable nested HVM -->
+            <feature name='vmx' policy='disable'/>
+            <feature name='svm' policy='disable'/>
+            <!-- let the guest know the TSC is safe to use (no migration) -->
+            <feature name='invtsc' policy='require'/>
+        </cpu>
+        <os>
+            <type arch="x86_64" machine="xenfv">hvm</type>
+                <!--
+                     For the libxl backend libvirt switches between OVMF (UEFI)
+                     and SeaBIOS based on the loader type. This has nothing to
+                     do with the hvmloader binary.
+                -->
+            <loader type="rom">hvmloader</loader>
+            <boot dev="cdrom" />
+            <boot dev="hd" />
+        </os>
+        <features>
+            <pae/>
+            <acpi/>
+            <apic/>
+            <viridian/>
+        </features>
+        <clock offset="variable" adjustment="0" basis="utc" />
+        <on_poweroff>destroy</on_poweroff>
+        <on_reboot>destroy</on_reboot>
+        <on_crash>destroy</on_crash>
+        <devices>
+            <!-- server_ip is the address of stubdomain. It hosts it's own DNS server. -->
+            <emulator type="stubdom-linux" cmdline="-qubes-audio:audiovm_xid=-1"/>
+            <input type="tablet" bus="usb"/>
+            <video>
+                <model type="vga"/>
+            </video>
+            <graphics type="qubes"
+            domain="test-inst-guivm"
+            log_level="2"
+            />
+            <console type="pty">
+                <target type="xen" port="0"/>
+            </console>
+        </devices>
+        </domain>
+        """
+        guivm = self.get_vm(name="guivm")
+        p = unittest.mock.patch.object(guivm, "is_running", lambda: True)
+        p.start()
+        self.addCleanup(p.stop)
+        vm = self.get_vm(uuid=my_uuid)
+        vm.netvm = None
+        vm.virt_mode = "hvm"
+        vm.guivm = guivm
+        vm.debug = True
         libvirt_xml = vm.create_config_file()
         self.assertXMLEqual(
             lxml.etree.XML(libvirt_xml), lxml.etree.XML(expected)
@@ -2947,3 +3104,20 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         assert qubes.vm.qubesvm.QubesVM(
             self.app, None, qid=1, name="bogus"
         ) > qubes.vm.adminvm.AdminVM(self.app, None)
+
+    def test_810_bootmode_kernelopts(self):
+        vm = self.get_vm(cls=qubes.vm.appvm.AppVM)
+        vm.template = self.get_vm(cls=qubes.vm.templatevm.TemplateVM)
+        vm.bootmode = qubes.property.DEFAULT
+        self.assertEqual(vm.bootmode_kernelopts, "")
+        vm.features["boot-mode.kernelopts.testmode1"] = "abc def"
+        vm.bootmode = "testmode1"
+        self.assertEqual(vm.bootmode_kernelopts, " abc def")
+        del vm.features["boot-mode.kernelopts.testmode1"]
+        self.assertEqual(vm.bootmode_kernelopts, "")
+        vm.template.features["boot-mode.kernelopts.testmode2"] = "ghi jkl"
+        vm.template.appvm_default_bootmode = "testmode2"
+        vm.bootmode = "nonexistent"
+        self.assertEqual(vm.bootmode_kernelopts, " ghi jkl")
+        del vm.template.features["boot-mode.kernelopts.testmode2"]
+        self.assertEqual(vm.bootmode_kernelopts, "")

@@ -45,7 +45,7 @@ import qubes.utils
 import qubes.vm
 import qubes.vm.adminvm
 import qubes.vm.mix.net
-from qubes.device_protocol import DeviceInterface
+from qubes.device_protocol import DeviceInterface, DeviceCategory
 
 qmemman_present = False
 try:
@@ -214,6 +214,25 @@ def _setter_kbd_layout(self, prop, value):
         )
 
     return value
+
+
+def _default_bootmode(self):
+    """
+    Return the template's default bootmode for AppVMs if possible, otherwise
+    return a blank string. May reset the template's AppVM default bootmode
+    property if the boot mode it specifies does not exist.
+    """
+    subject = self
+    while hasattr(subject, "template"):
+        if hasattr(subject.template, "appvm_default_bootmode"):
+            bootmode_value = subject.template.appvm_default_bootmode
+            kernelopts = subject.features.check_with_template(
+                f"boot-mode.kernelopts.{bootmode_value}", None
+            )
+            if kernelopts is not None:
+                return bootmode_value
+        subject = subject.template
+    return ""
 
 
 def _default_virt_mode(self):
@@ -660,6 +679,14 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
     #
     # properties loaded from XML
     #
+    bootmode = qubes.property(
+        "bootmode",
+        type=str,
+        load_stage=4,
+        default=_default_bootmode,
+        doc="Active boot mode for this domain"
+    )
+
     guivm = qubes.VMProperty(
         "guivm",
         load_stage=4,
@@ -953,6 +980,24 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
                         break
 
         return result + list(self.volumes.values())
+
+    @property
+    def bootmode_kernelopts(self):
+        if self.bootmode == "":
+            return ""
+        kernelopts = self.features.check_with_template(
+            f"boot-mode.kernelopts.{self.bootmode}", None
+        )
+        if kernelopts is None:
+            default_bootmode = _default_bootmode(self)
+            kernelopts = self.features.check_with_template(
+                f"boot-mode.kernelopts.{default_bootmode}", None
+            )
+            if kernelopts is None:
+                return ""
+            return f" {kernelopts}"
+        else:
+            return f" {kernelopts}"
 
     @property
     def libvirt_domain(self):
@@ -2593,9 +2638,25 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
         )
         if os.path.exists(kernelopts_path):
             with open(kernelopts_path, encoding="ascii") as f_kernelopts:
-                return base_kernelopts + f_kernelopts.read().rstrip("\n\r")
+                result = base_kernelopts + f_kernelopts.read().rstrip("\n\r")
         else:
-            return base_kernelopts + qubes.config.defaults["kernelopts_common"]
+            result = (
+                base_kernelopts + qubes.config.defaults["kernelopts_common"]
+            )
+        no_nomodeset = self.features.check_with_template("no-nomodeset", None)
+        if no_nomodeset is None:
+            # automatically skip nomodeset if a GPU is attached
+            for dev_ass in self.devices["pci"].get_assigned_devices():
+                for intf in dev_ass.device.interfaces:
+                    if intf.category == DeviceCategory.Display:
+                        no_nomodeset = True
+                        break
+        if no_nomodeset:
+            result = " ".join(
+                opt for opt in result.split(" ") if opt != "nomodeset"
+            )
+
+        return result
 
     #
     # helper methods
