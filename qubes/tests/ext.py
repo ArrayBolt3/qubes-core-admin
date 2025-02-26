@@ -507,6 +507,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ("features.items", (), {}),
                 ("features.__setitem__", ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"), {}),
                 ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
             ]
         )
 
@@ -528,6 +529,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ("features.items", (), {}),
                 ("features.__setitem__", ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"), {}),
                 ("features.__setitem__", ("boot-mode.name.vmreq", "VMReq"), {}),
+                ("features.get", ("qrexec", False), {}),
                 ("features.get", ("qrexec", False), {}),
             ]
         )
@@ -555,6 +557,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ("features.__setitem__", ("boot-mode.kernelopts.vmreq2", "vmreq2-1 vmreq2-2"), {}),
                 ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
                 ("features.__setitem__", ("boot-mode.name.vmreq2", "VMReq2"), {}),
+                ("features.get", ("qrexec", False), {}),
                 ("features.get", ("qrexec", False), {}),
             ]
         )
@@ -584,6 +587,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
                 ("features.__setitem__", ("boot-mode.name.vmreq2", "VMReq2"), {}),
                 ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
             ]
         )
 
@@ -605,10 +609,11 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             self.vm.mock_calls,
             [
                 ("features.items", (), {}),
-                ("features.__delitem__", ("boot-mode.name.old"), {}),
-                ("features.__delitem__", ("boot-mode.kernelopts.old"), {}),
+                ("features.__delitem__", ("boot-mode.name.old",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.old",), {}),
                 ("features.__setitem__", ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"), {}),
                 ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
+                ("features.get", ("qrexec", False), {}),
                 ("features.get", ("qrexec", False), {}),
             ]
         )
@@ -634,12 +639,13 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             self.vm.mock_calls,
             [
                 ("features.items", (), {}),
-                ("features.__delitem__", ("boot-mode.name.old1"), {}),
-                ("features.__delitem__", ("boot-mode.name.old2"), {}),
-                ("features.__delitem__", ("boot-mode.kernelopts.old2"), {}),
+                ("features.__delitem__", ("boot-mode.name.old1",), {}),
+                ("features.__delitem__", ("boot-mode.name.old2",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.old2",), {}),
                 ("features.__setitem__", ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"), {}),
                 ("features.__setitem__", ("boot-mode.kernelopts.old1", "old-newer1-1 old-newer1-2"), {}),
                 ("features.__setitem__", ("boot-mode.name.vmreq1", "VMReq1"), {}),
+                ("features.get", ("qrexec", False), {}),
                 ("features.get", ("qrexec", False), {}),
             ]
         )
@@ -723,6 +729,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             [
                 ("features.items", (), {}),
                 ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
             ]
         )
 
@@ -804,6 +811,72 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             self.vm.mock_calls,
             [
                 ("features.items", (), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage1",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage2",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage3",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage4",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage5",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage6",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage7",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage8",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage9",), {}),
+                ("features.__delitem__", ("boot-mode.kernelopts.garbage10",), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage11", "garbage11"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage12", "garbage12"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage13", "garbage13"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage14", "garbage14"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage15", "garbage15"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage16", "garbage16"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage17", "garbage17"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage18", "garbage18"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage19", "garbage19"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage20", "garbage20"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage21", "garbage21"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage22", "garbage22"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage23", "garbage23"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage24", "garbage24"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage25", "garbage25"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage26", "garbage26"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage27", "garbage27"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage28", "garbage28"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage29", "garbage29"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage30", "garbage30"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage31", "garbage31"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage32", "garbage32"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage33", "garbage33"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage34", "garbage34"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage35", "garbage35"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage36", "garbage36"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage37", "garbage37"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage38", "garbage38"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage39", "garbage39"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage40", "garbage40"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage41", "garbage41"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage42", "garbage42"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage43", "garbage43"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage44", "garbage44"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage45", "garbage45"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage46", "garbage46"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage47", "garbage47"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage48", "garbage48"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage49", "garbage49"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage50", "garbage50"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage51", "garbage51"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage52", "garbage52"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage53", "garbage53"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage54", "garbage54"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage55", "garbage55"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage56", "garbage56"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage57", "garbage57"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage58", "garbage58"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage59", "garbage59"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage60", "garbage60"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage61", "garbage61"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage62", "garbage62"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage63", "garbage63"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage64", "garbage64"), {}),
+                ("features.__setitem__", ("boot-mode.kernelopts.garbage65", "garbage65"), {}),
+                ("features.get", ("qrexec", False), {}),
                 ("features.get", ("qrexec", False), {}),
             ]
         )
