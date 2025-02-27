@@ -232,7 +232,7 @@ def _default_bootmode(self):
             if kernelopts is not None:
                 return bootmode_value
         subject = subject.template
-    return ""
+    return "default"
 
 
 def _default_virt_mode(self):
@@ -983,7 +983,7 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
 
     @property
     def bootmode_kernelopts(self):
-        if self.bootmode == "":
+        if self.bootmode == "default":
             return ""
         kernelopts = self.features.check_with_template(
             f"boot-mode.kernelopts.{self.bootmode}", None

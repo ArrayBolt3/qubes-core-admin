@@ -110,26 +110,19 @@ class CoreFeatures(qubes.ext.Extension):
         for feature_key, feature_val in vm.features.items():
             if feature_key.startswith(
                 "boot-mode.kernelopts."
-            ) or feature_key.startswith("boot-mode.name"):
+            ) or feature_key.startswith("boot-mode.name."):
                 old_bootmode_info[feature_key] = feature_val
         new_bootmode_info = {}
-        untrusted_sanitized_features = {}
         for (
             untrusted_feature_key,
             untrusted_feature_value,
         ) in untrusted_features.items():
-            if not all(c in string.printable for c in untrusted_feature_value):
-                continue
-            untrusted_sanitized_features[untrusted_feature_key] = (
-                untrusted_feature_value
-            )
-        for (
-            untrusted_feature_key,
-            untrusted_feature_value,
-        ) in untrusted_sanitized_features.items():
             if untrusted_feature_key.startswith("boot-mode.kernelopts."):
                 bootmode_name = untrusted_feature_key.split(".")[2]
                 if bootmode_name == "":
+                    continue
+                if bootmode_name == "default":
+                    # "default" is reserved, cannot set kernelopts for it
                     continue
                 bootmode_feature = untrusted_feature_key
                 bootmode_value = untrusted_feature_value
@@ -137,7 +130,7 @@ class CoreFeatures(qubes.ext.Extension):
         for (
             untrusted_feature_key,
             untrusted_feature_value,
-        ) in untrusted_sanitized_features.items():
+        ) in untrusted_features.items():
             if untrusted_feature_key.startswith("boot-mode.name."):
                 bootmode_name = untrusted_feature_key.split(".")[2]
                 if bootmode_name == "":
@@ -145,7 +138,7 @@ class CoreFeatures(qubes.ext.Extension):
                 if (
                     f"boot-mode.kernelopts.{bootmode_name}"
                     not in new_bootmode_info
-                ):
+                ) and bootmode_name != "default":
                     continue
                 bootmode_feature = untrusted_feature_key
                 bootmode_value = untrusted_feature_value
@@ -160,34 +153,26 @@ class CoreFeatures(qubes.ext.Extension):
                         del vm.features[feature_key]
                 for feature_key, feature_val in new_bootmode_info.items():
                     vm.features[feature_key] = feature_val
-        for (
-            untrusted_feature_key,
-            untrusted_feature_value,
-        ) in untrusted_sanitized_features.items():
-            if untrusted_feature_key == "boot-mode.active":
-                if not (
-                    f"boot-mode.kernelopts.{untrusted_feature_value}"
-                    in vm.features
-                ):
-                    continue
-                if vm.bootmode != "":
-                    continue
+        if "boot-mode.active" in untrusted_features:
+            untrusted_feature_value = untrusted_features["boot-mode.active"]
+            if (
+                f"boot-mode.kernelopts.{untrusted_feature_value}" in vm.features
+                and vm.bootmode == ""
+            ):
                 bootmode_value = untrusted_feature_value
                 vm.bootmode = bootmode_value
-            elif untrusted_feature_key == "boot-mode.appvm-default":
-                if not (
-                    f"boot-mode.kernelopts.{untrusted_feature_value}"
-                    in vm.features
-                ):
-                    continue
-                if not hasattr(vm, "appvm_default_bootmode"):
-                    continue
-                if vm.appvm_default_bootmode != "":
-                    continue
+        if "boot-mode.appvm-default" in untrusted_features:
+            untrusted_feature_value = untrusted_features[
+                "boot-mode.appvm-default"
+            ]
+            if (
+                f"boot-mode.kernelopts.{untrusted_feature_value}" in vm.features
+                and hasattr(vm, "appvm_default_bootmode")
+                and vm.appvm_default_bootmode == ""
+            ):
                 bootmode_value = untrusted_feature_value
                 vm.appvm_default_bootmode = bootmode_value
         del untrusted_features
-        del untrusted_sanitized_features
 
         # default user for qvm-run etc
         # starting with Qubes 4.x ignored

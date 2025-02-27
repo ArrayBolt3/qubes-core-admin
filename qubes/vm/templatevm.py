@@ -47,7 +47,7 @@ class TemplateVM(QubesVM):
         "appvm_default_bootmode",
         type=str,
         load_stage=4,
-        default="",
+        default="default",
         doc="Default active bootmode for AppVMs based on this template",
     )
 
