@@ -113,6 +113,7 @@ class CoreFeatures(qubes.ext.Extension):
             ) or feature_key.startswith("boot-mode.name."):
                 old_bootmode_info[feature_key] = feature_val
         new_bootmode_info = {}
+        new_bootmode_names = []
         for (
             untrusted_feature_key,
             untrusted_feature_value,
@@ -143,16 +144,20 @@ class CoreFeatures(qubes.ext.Extension):
                 bootmode_feature = untrusted_feature_key
                 bootmode_value = untrusted_feature_value
                 new_bootmode_info[bootmode_feature] = bootmode_value
-        # Only allow a maximum of 64 boot modes, fail to add or remove any
-        # boot modes if more than 64 would be defined in the end
-        if len(new_bootmode_info) <= 64:
-            # Prevent wiping all boot modes
-            if new_bootmode_info:
-                for feature_key in old_bootmode_info:
-                    if feature_key not in new_bootmode_info:
-                        del vm.features[feature_key]
-                for feature_key, feature_val in new_bootmode_info.items():
-                    vm.features[feature_key] = feature_val
+                new_bootmode_names.append(bootmode_value)
+        if (
+            # Disallow duplicate boot mode names
+            len(bootmode_names) != len(set(bootmode_names)
+            # Don't allow more than 64 boot modes
+            and len(new_bootmode_info) <= 64
+            # Don't allow wiping all boot modes
+            and len(new_bootmode_info) > 0
+        ):
+            for feature_key in old_bootmode_info:
+                if feature_key not in new_bootmode_info:
+                    del vm.features[feature_key]
+            for feature_key, feature_val in new_bootmode_info.items():
+                vm.features[feature_key] = feature_val
         if "boot-mode.active" in untrusted_features:
             untrusted_feature_value = untrusted_features["boot-mode.active"]
             if (
