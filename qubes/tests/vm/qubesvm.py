@@ -282,13 +282,13 @@ class TC_10_default(qubes.tests.QubesTestCase):
         self.assertEqual(qubes.vm.qubesvm._default_maxmem(self.vm), 1000)
 
     def test_030_default_bootmode(self):
-        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "")
+        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "default")
         self.vm.template = TestVM()
         self.vm.template.appvm_default_bootmode = "testmode"
         self.vm.template.features["boot-mode.kernelopts.testmode"] = "abc def"
         self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "testmode")
         del self.vm.template.features["boot-mode.kernelopts.testmode"]
-        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "")
+        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "default")
 
 
 class QubesVMTestsMixin(object):
