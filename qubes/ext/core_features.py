@@ -147,7 +147,7 @@ class CoreFeatures(qubes.ext.Extension):
                 new_bootmode_names.append(bootmode_value)
         if (
             # Disallow duplicate boot mode names
-            len(bootmode_names) != len(set(bootmode_names)
+            len(bootmode_names) != len(set(bootmode_names))
             # Don't allow more than 64 boot modes
             and len(new_bootmode_info) <= 64
             # Don't allow wiping all boot modes
