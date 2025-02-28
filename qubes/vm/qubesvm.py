@@ -65,6 +65,20 @@ MEM_OVERHEAD_PER_VCPU = 3 * 1024 * 1024 / 2
 _vm_uuid_re = re.compile(rb"\A/vm/[0-9a-f]{8}(?:-[0-9a-f]{4}){4}[0-9a-f]{8}\Z")
 
 
+def _setter_bootmode(self, prop, value):
+    """
+    Helper for setting the bootmode and running sanity checks on it.
+    """
+    if not value:
+        return ""
+    value = str(value)
+    if value == "default":
+        raise qubes.exc.QubesPropertyValueError(
+            self, prop, value, "Bootmode name cannot be 'default'"
+        )
+    return value
+
+
 def _setter_kernel(self, prop, value):
     """
     Helper for setting the domain kernel and running sanity checks on it.
@@ -682,6 +696,7 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
         "bootmode",
         type=str,
         load_stage=4,
+        setter=_setter_bootmode,
         default=_default_bootmode,
         doc="Active boot mode for this domain",
     )
@@ -982,7 +997,11 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
 
     @property
     def bootmode_kernelopts(self):
-        if self.property_is_default(bootmode):
+        if self.property_is_default("bootmode"):
+            return ""
+        if self.bootmode == "default":
+            # It shouldn't be possible for the property to be explicitly set
+            # to "default", but better safe than sorry.
             return ""
         kernelopts = self.features.check_with_template(
             f"boot-mode.kernelopts.{self.bootmode}", None

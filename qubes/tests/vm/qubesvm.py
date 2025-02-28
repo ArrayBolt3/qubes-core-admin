@@ -189,6 +189,19 @@ class TC_00_setters(qubes.tests.QubesTestCase):
         with self.assertRaises(ValueError):
             qubes.vm.qubesvm._setter_virt_mode(self.vm, self.prop, "True")
 
+    def test_050_setter_bootmode(self):
+        self.assertEqual(
+            qubes.vm.qubesvm._setter_bootmode(
+                self.vm, self.prop, "vmreq"
+            ), "vmreq"
+        )
+        with self.assertRaises(ValueError):
+            qubes.vm.qubesvm._setter_bootmode(
+                self.vm,
+                self.prop,
+                "default"
+            )
+
 
 class TC_10_default(qubes.tests.QubesTestCase):
     def setUp(self):
