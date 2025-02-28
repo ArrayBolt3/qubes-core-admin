@@ -219,8 +219,7 @@ def _setter_kbd_layout(self, prop, value):
 def _default_bootmode(self):
     """
     Return the template's default bootmode for AppVMs if possible, otherwise
-    return a blank string. May reset the template's AppVM default bootmode
-    property if the boot mode it specifies does not exist.
+    return the special value "default".
     """
     subject = self
     while hasattr(subject, "template"):
@@ -983,7 +982,7 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
 
     @property
     def bootmode_kernelopts(self):
-        if self.bootmode == "default":
+        if self.property_is_default(bootmode):
             return ""
         kernelopts = self.features.check_with_template(
             f"boot-mode.kernelopts.{self.bootmode}", None

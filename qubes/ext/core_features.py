@@ -119,7 +119,11 @@ class CoreFeatures(qubes.ext.Extension):
             untrusted_feature_value,
         ) in untrusted_features.items():
             if untrusted_feature_key.startswith("boot-mode.kernelopts."):
-                bootmode_name = untrusted_feature_key.split(".")[2]
+                bootmode_key_parts = untrusted_feature_key.split(".")
+                if len(bootmode_key_parts) != 3:
+                    # Boot mode key contains unexpected data, reject it
+                    continue
+                bootmode_name = bootmode_key_parts[2]
                 if bootmode_name == "":
                     continue
                 if bootmode_name == "default":
@@ -133,7 +137,11 @@ class CoreFeatures(qubes.ext.Extension):
             untrusted_feature_value,
         ) in untrusted_features.items():
             if untrusted_feature_key.startswith("boot-mode.name."):
-                bootmode_name = untrusted_feature_key.split(".")[2]
+                bootmode_key_parts = untrusted_feature_key.split(".")
+                if len(bootmode_key_parts) != 3:
+                    # Boot mode key contains unexpected data, reject it
+                    continue
+                bootmode_name = bootmode_key_parts[2]
                 if bootmode_name == "":
                     continue
                 if (

@@ -1211,6 +1211,141 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             ],
         )
 
+    def test_048_bootmode_defaultname(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq": "VMReq",
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                    "boot-mode.name.default": "No Params",
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq", "VMReq"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.default", "No Params"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
+    def test_049_bootmode_multidots(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq": "VMReq",
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                    "boot-mode.name.vmreq.two": "VMReq Two",
+                    "boot-mode.kernelopts.vmreq.two": "vmreqtwo1 vmreqtwo2",
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq", "VMReq"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
+    def test_050_bootmode_noid(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq": "VMReq",
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                    "boot-mode.name.": "Ghost",
+                    "boot-mode.kernelopts.": "ghost",
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq", "VMReq"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
+    def test_051_bootmode_defaultkernelopts(self):
+        del self.vm.template
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq": "VMReq",
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                    "boot-mode.kernelopts.default": "default_kernelopts",
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq", "VMReq"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
     def test_100_servicevm_feature(self):
         self.vm.provides_network = True
         self.ext.set_servicevm_feature(self.vm)
