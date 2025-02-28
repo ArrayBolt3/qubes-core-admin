@@ -162,7 +162,7 @@ class CoreFeatures(qubes.ext.Extension):
             untrusted_feature_value = untrusted_features["boot-mode.active"]
             if (
                 f"boot-mode.kernelopts.{untrusted_feature_value}" in vm.features
-                and vm.bootmode == ""
+                and vm.property_is_default(bootmode)
             ):
                 bootmode_value = untrusted_feature_value
                 vm.bootmode = bootmode_value
@@ -173,7 +173,7 @@ class CoreFeatures(qubes.ext.Extension):
             if (
                 f"boot-mode.kernelopts.{untrusted_feature_value}" in vm.features
                 and hasattr(vm, "appvm_default_bootmode")
-                and vm.appvm_default_bootmode == ""
+                and vm.property_is_default(appvm_default_bootmode)
             ):
                 bootmode_value = untrusted_feature_value
                 vm.appvm_default_bootmode = bootmode_value
