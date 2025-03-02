@@ -1203,14 +1203,14 @@ class QubesVM(qubes.vm.mix.net.NetVMMixin, qubes.vm.BaseVM):
             self._domain_stopped_event_received = False
             self._domain_stopped_event_handled = False
 
-    @qubes.events.handler("feature-set:boot-mode.active")
+    @qubes.events.handler("domain-feature-set:boot-mode.active")
     def on_feature_bootmode_active_set(
-        self, event, name, newvalue, oldvalue=None
+        subject, event, feature, value, oldvalue=None
     ):
-        if newvalue == oldvalue:
+        if value == oldvalue:
             return
-        if self.property_is_default("bootmode"):
-            self.fire_event("property-reset:bootmode", name="bootmode")
+        if subject.property_is_default("bootmode"):
+            subject.fire_event("property-reset:bootmode", name="bootmode")
 
     @qubes.events.handler("property-set:label")
     def on_property_set_label(self, event, name, newvalue, oldvalue=None):
