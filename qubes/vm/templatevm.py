@@ -107,7 +107,7 @@ class TemplateVM(QubesVM):
         }
         super().__init__(*args, **kwargs)
 
-    @qubes.events.handler("feature-set:boot-mode.appvm-default"):
+    @qubes.events.handler("feature-set:boot-mode.appvm-default")
     def on_feature_bootmode_appvm_default_set(
         self, event, name, newvalue, oldvalue=None
     ):
