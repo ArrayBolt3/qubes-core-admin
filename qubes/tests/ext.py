@@ -1500,6 +1500,7 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                     ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"),
                     {},
                 ),
+                (
                     "features.__setitem__",
                     ("boot-mode.name.vmreq", "VMReq"),
                     {},
