@@ -222,7 +222,14 @@ def _default_bootmode(self):
     return the special value "default".
     """
     if "boot-mode.active" in self.features:
-        return self.features["boot-mode.active"]
+        bootmode_value = self.features["boot-mode.active"]
+        if bootmode_value == "default":
+            return "default"
+        kernelopts = subject.features.check_with_template(
+            f"boot-mode.kernelopts.{bootmode_value}"
+        )
+        if kernelopts is not None:
+            return bootmode_value
     subject = self
     while hasattr(subject, "template"):
         if hasattr(subject.template, "appvm_default_bootmode"):
