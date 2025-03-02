@@ -218,15 +218,16 @@ def _setter_kbd_layout(self, prop, value):
 
 def _default_bootmode(self):
     """
-    Return the template's default bootmode for AppVMs if possible, otherwise
-    return the special value "default".
+    Return the VM's default bootmode. If that doesn't exist, return the
+    template's default bootmode for AppVMs, and if that doesn't exist return
+    the special value "default".
     """
     if "boot-mode.active" in self.features:
         bootmode_value = self.features["boot-mode.active"]
         if bootmode_value == "default":
             return "default"
-        kernelopts = subject.features.check_with_template(
-            f"boot-mode.kernelopts.{bootmode_value}"
+        kernelopts = self.features.check_with_template(
+            f"boot-mode.kernelopts.{bootmode_value}", None
         )
         if kernelopts is not None:
             return bootmode_value

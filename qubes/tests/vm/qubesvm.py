@@ -281,31 +281,6 @@ class TC_10_default(qubes.tests.QubesTestCase):
         self.vm.memory = 100
         self.assertEqual(qubes.vm.qubesvm._default_maxmem(self.vm), 1000)
 
-    def test_030_default_bootmode(self):
-        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "default")
-        self.vm.features["boot-mode.active"] = "testmode1"
-        self.vm.template.features["boot-mode.kernelopts.testmode1"] = "abc def"
-        self.assertEqual(
-            qubes.vm.qubesvm._default_bootmode(self.vm), "testmode1"
-        )
-        del self.vm.template.features["boot-mode.kernelopts.testmode1"]
-        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "default")
-        self.vm.template = TestVM()
-        self.vm.template.features["boot-mode.appvm-default"] = "testmode2"
-        self.vm.template.features["boot-mode.kernelopts.testmode2"] = "ghi jkl"
-        self.assertEqual(
-            qubes.vm.qubesvm._default_bootmode(self.vm), "testmode2"
-        )
-        del self.vm.template.features["boot-mode.kernelopts.testmode2"]
-        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "default")
-        self.vm.template.features["boot-mode.kernelopts.testmode3"] = "mno pqr"
-        self.vm.template.appvm_default_bootmode = "testmode3"
-        self.assertEqual(
-            qubes.vm.qubesvm._default_bootmode(self.vm), "testmode3"
-        )
-        del self.vm.template.features["boot-mode.kernelopts.testmode3"]
-        self.assertEqual(qubes.vm.qubesvm._default_bootmode(self.vm), "default")
-
 
 class QubesVMTestsMixin(object):
     property_no_default = object()
@@ -3137,3 +3112,24 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         self.assertEqual(vm.bootmode_kernelopts, " ghi jkl")
         del vm.template.features["boot-mode.kernelopts.testmode2"]
         self.assertEqual(vm.bootmode_kernelopts, "")
+
+    def test_811_default_bootmode(self):
+        vm = self.get_vm(cls=qubes.vm.appvm.AppVM)
+        vm.template = self.get_vm(cls=qubes.vm.templatevm.TemplateVM)
+        vm.bootmode = qubes.property.DEFAULT
+        self.assertEqual(vm.bootmode, "default")
+        vm.features["boot-mode.active"] = "testmode1"
+        vm.template.features["boot-mode.kernelopts.testmode1"] = "abc def"
+        self.assertEqual(vm.bootmode, "testmode1")
+        del vm.template.features["boot-mode.kernelopts.testmode1"]
+        self.assertEqual(vm.bootmode, "default")
+        vm.template.features["boot-mode.appvm-default"] = "testmode2"
+        vm.template.features["boot-mode.kernelopts.testmode2"] = "ghi jkl"
+        self.assertEqual(vm.bootmode, "testmode2")
+        del vm.template.features["boot-mode.kernelopts.testmode2"]
+        self.assertEqual(vm.bootmode, "default")
+        vm.template.features["boot-mode.kernelopts.testmode3"] = "mno pqr"
+        vm.template.appvm_default_bootmode = "testmode3"
+        self.assertEqual(vm.bootmode, "testmode3")
+        del vm.template.features["boot-mode.kernelopts.testmode3"]
+        self.assertEqual(vm.bootmode, "default")
