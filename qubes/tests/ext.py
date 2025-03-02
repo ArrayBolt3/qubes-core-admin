@@ -1347,6 +1347,168 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
             ],
         )
 
+    def test_052_bootmode_active_appvm_default(self):
+        del self.vm.template
+        self.vm.bootmode = ""
+        self.vm.appvm_default_bootmode = ""
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq1": "VMReq1",
+                    "boot-mode.kernelopts.vmreq1": "vmreq1-1 vmreq1-2",
+                    "boot-mode.name.vmreq2": "VMReq2",
+                    "boot-mode.kernelopts.vmreq2": "vmreq2-1 vmreq2-2",
+                    "boot-mode.active": "vmreq1",
+                    "boot-mode.appvm-default": "vmreq2"
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq2", "vmreq2-1 vmreq2-2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq1", "VMReq1"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq2", "VMReq2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.active", "vmreq1"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.appvm-default", "vmreq2"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
+    def test_053_bootmode_active_appvm_default_mod(self):
+        del self.vm.template
+        self.vm.bootmode = ""
+        self.vm.appvm_default_bootmode = ""
+        self.vm.features["boot-mode.kernelopts.old1"] = "oldopts1"
+        self.vm.features["boot-mode.active"] = "old1"
+        self.vm.features["boot-mode.kernelopts.old2"] = "oldopts2"
+        self.vm.features["boot-mode.appvm-default"] = "old2"
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq1": "VMReq1",
+                    "boot-mode.kernelopts.vmreq1": "vmreq1-1 vmreq1-2",
+                    "boot-mode.name.vmreq2": "VMReq2",
+                    "boot-mode.kernelopts.vmreq2": "vmreq2-1 vmreq2-2",
+                    "boot-mode.active": "vmreq1",
+                    "boot-mode.appvm-default": "vmreq2"
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__delitem__",
+                    ("boot-mode.kernelopts.old1",),
+                    {},
+                ),
+                (
+                    "features.__delitem__",
+                    ("boot-mode.kernelopts.old2",),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq1", "vmreq1-1 vmreq1-2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq2", "vmreq2-1 vmreq2-2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq1", "VMReq1"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq2", "VMReq2"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.active", "vmreq1"),
+                    {},
+                ),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.appvm-default", "vmreq2"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
+    def test_054_bootmode_active_appvm_default_wrong(self):
+        del self.vm.template
+        self.vm.bootmode = ""
+        self.vm.appvm_default_bootmode = ""
+        self.loop.run_until_complete(
+            self.ext.qubes_features_request(
+                self.vm,
+                "features-request",
+                untrusted_features={
+                    "boot-mode.name.vmreq": "VMReq",
+                    "boot-mode.kernelopts.vmreq": "vmreq1 vmreq2",
+                    "boot-mode.active": "nonexistent1",
+                    "boot-mode.appvm-default": "nonexistent2"
+                },
+            )
+        )
+        self.assertListEqual(
+            self.vm.mock_calls,
+            [
+                ("features.items", (), {}),
+                (
+                    "features.__setitem__",
+                    ("boot-mode.kernelopts.vmreq", "vmreq1 vmreq2"),
+                    {},
+                ),
+                    "features.__setitem__",
+                    ("boot-mode.name.vmreq", "VMReq"),
+                    {},
+                ),
+                ("features.get", ("qrexec", False), {}),
+                ("features.get", ("qrexec", False), {}),
+            ],
+        )
+
     def test_100_servicevm_feature(self):
         self.vm.provides_network = True
         self.ext.set_servicevm_feature(self.vm)
