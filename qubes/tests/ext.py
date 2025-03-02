@@ -1418,10 +1418,10 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
         del self.vm.template
         self.vm.bootmode = ""
         self.vm.appvm_default_bootmode = ""
-        self.vm.features["boot-mode.kernelopts.old1"] = "oldopts1"
-        self.vm.features["boot-mode.active"] = "old1"
-        self.vm.features["boot-mode.kernelopts.old2"] = "oldopts2"
-        self.vm.features["boot-mode.appvm-default"] = "old2"
+        self.features["boot-mode.kernelopts.old1"] = "oldopts1"
+        self.features["boot-mode.active"] = "old1"
+        self.features["boot-mode.kernelopts.old2"] = "oldopts2"
+        self.features["boot-mode.appvm-default"] = "old2"
         self.loop.run_until_complete(
             self.ext.qubes_features_request(
                 self.vm,
