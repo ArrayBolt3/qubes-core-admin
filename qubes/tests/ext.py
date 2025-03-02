@@ -1390,8 +1390,18 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                     {},
                 ),
                 (
+                    "features.__contains__",
+                    ("boot-mode.kernelopts.vmreq1",),
+                    {},
+                ),
+                (
                     "features.__setitem__",
                     ("boot-mode.active", "vmreq1"),
+                    {},
+                ),
+                (
+                    "features.__contains__",
+                    ("boot-mode.kernelopts.vmreq2",),
                     {},
                 ),
                 (
@@ -1461,8 +1471,18 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                     {},
                 ),
                 (
+                    "features.__contains__",
+                    ("boot-mode.kernelopts.vmreq1",),
+                    {},
+                ),
+                (
                     "features.__setitem__",
                     ("boot-mode.active", "vmreq1"),
+                    {},
+                ),
+                (
+                    "features.__contains__",
+                    ("boot-mode.kernelopts.vmreq2",),
                     {},
                 ),
                 (
@@ -1503,6 +1523,16 @@ class TC_00_CoreFeatures(qubes.tests.QubesTestCase):
                 (
                     "features.__setitem__",
                     ("boot-mode.name.vmreq", "VMReq"),
+                    {},
+                ),
+                (
+                    "features.__contains__",
+                    ("boot-mode.kernelopts.nonexistent1",),
+                    {},
+                ),
+                (
+                    "features.__contains__",
+                    ("boot-mode.kernelopts.nonexistent2",),
                     {},
                 ),
                 ("features.get", ("qrexec", False), {}),
