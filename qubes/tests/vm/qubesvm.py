@@ -3112,6 +3112,9 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         self.assertEqual(vm.bootmode_kernelopts, " ghi jkl")
         del vm.template.features["boot-mode.kernelopts.testmode2"]
         self.assertEqual(vm.bootmode_kernelopts, "")
+        vm._default_bootmode = unittest.mock.Mock()
+        vm._default_bootmode.return_value = "nonexistent2"
+        self.assertEqual(vm.bootmode_kernelopts, "")
 
 
     def test_811_default_bootmode(self):
@@ -3124,17 +3127,19 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         vm.features["boot-mode.active"] = "testmode1"
         vm.template.features["boot-mode.kernelopts.testmode1"] = "abc def"
         self.assertEqual(vm.bootmode, "testmode1")
+        vm.features["boot-mode.active"] = "testmode1"
+        self.assertEqual(vm.bootmode, "testmode1")
         del vm.template.features["boot-mode.kernelopts.testmode1"]
         self.assertEqual(vm.bootmode, "default")
         vm.template.features["boot-mode.appvm-default"] = "testmode2"
         vm.template.features["boot-mode.kernelopts.testmode2"] = "ghi jkl"
         self.assertEqual(vm.bootmode, "testmode2")
+        vm.template.features["boot-mode.appvm-default"] = "testmode2"
+        self.assertEqual(vm.bootmode, "testmode2")
         del vm.template.features["boot-mode.kernelopts.testmode2"]
         self.assertEqual(vm.bootmode, "default")
         vm.template.features["boot-mode.kernelopts.testmode3"] = "mno pqr"
         vm.template.appvm_default_bootmode = "testmode3"
-        self.assertEqual(vm.bootmode, "testmode3")
-        vm.template.features["boot-mode.kernelopts.testmode3"] = "mno pqr"
         self.assertEqual(vm.bootmode, "testmode3")
         del vm.template.features["boot-mode.kernelopts.testmode3"]
         self.assertEqual(vm.bootmode, "default")
