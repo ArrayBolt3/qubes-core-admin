@@ -3134,5 +3134,7 @@ class TC_90_QubesVM(QubesVMTestsMixin, qubes.tests.QubesTestCase):
         vm.template.features["boot-mode.kernelopts.testmode3"] = "mno pqr"
         vm.template.appvm_default_bootmode = "testmode3"
         self.assertEqual(vm.bootmode, "testmode3")
+        vm.template.features["boot-mode.kernelopts.testmode3"] = "mno pqr"
+        self.assertEqual(vm.bootmode, "testmode3")
         del vm.template.features["boot-mode.kernelopts.testmode3"]
         self.assertEqual(vm.bootmode, "default")
