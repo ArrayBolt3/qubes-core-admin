@@ -151,9 +151,14 @@ class CoreFeatures(qubes.ext.Extension):
                 f"boot-mode.kernelopts.{bootmode_name}" not in new_bootmode_info
             ) and bootmode_name != "default":
                 continue
-            if untrusted_feature_key.startswith(
-                "boot-mode.name."
-            ) or untrusted_feature_key.startswith("boot-mode.default-user."):
+            if (
+                untrusted_feature_key.startswith("boot-mode.name.")
+                or untrusted_feature_key.startswith("boot-mode.default-user.")
+            ):
+                if untrusted_feature_key.startswith(
+                    "boot-mode.default-user."
+                ) and bootmode_name == "default":
+                    continue
                 bootmode_feature = untrusted_feature_key
                 bootmode_value = untrusted_feature_value
                 new_bootmode_info[bootmode_feature] = bootmode_value
