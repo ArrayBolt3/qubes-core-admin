@@ -526,9 +526,7 @@ qvm-features-request boot-mode.active="defuser"
          """,
             user="root",
         )
-        await vm.run_for_stdio(
-            "useradd -m altuser", user="root"
-        )
+        await vm.run_for_stdio("useradd -m altuser", user="root")
         await vm.run_for_stdio(
             "chmod +x " "/etc/qubes/post-install.d/50-test.sh", user="root"
         )
@@ -537,7 +535,7 @@ qvm-features-request boot-mode.active="defuser"
 
         await vm.start()
         user_id = (await vm.run_for_stdio("id -un"))[0].decode()
-        self.assertEquals(user_id, "altuser")
+        self.assertEqual(user_id.strip(), "altuser")
 
     def test_210_bootmode_template(self):
         self.test_template = self.app.add_new_vm(
